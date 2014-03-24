@@ -7,8 +7,8 @@
   "license": "Proprietary",
   "private": true,
   "dependencies": {
-    "knex": "~0.5.7",
-    "bookshelf": "~0.6.4",
+    "knex": "~0.5.10",
+    "bookshelf": "~0.6.8",
     "sqlite3": "~2.2.0",
     "express": "~3.4.8",
     "express-partials": "~0.2.0",

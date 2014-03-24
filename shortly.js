@@ -1,3 +1,5 @@
+/* global require, __dirname */
+
 var express = require('express');
 var util = require('./lib/utility');
 var partials = require('express-partials');
@@ -8,31 +10,31 @@ var User = require('./app/models/user');
 var Links = require('./app/collections/links');
 var Link = require('./app/models/link');
 var Click = require('./app/models/click');
-
+//creates app as new express app.
 var app = express();
-
+//links ejs templates
 app.configure(function() {
   app.set('views', __dirname + '/views');
   app.set('view engine', 'ejs');
   app.use(partials());
-  app.use(express.bodyParser())
+  app.use(express.bodyParser());
   app.use(express.static(__dirname + '/public'));
 });
-
+//routes get/ to ejs index
 app.get('/', function(req, res) {
   res.render('index');
 });
-
+//routes get/create to ejs index
 app.get('/create', function(req, res) {
   res.render('index');
 });
-
+//routes get/links to backbone links collection, which fetches all the links, then with promise sends resulting models as response. Research reset.
 app.get('/links', function(req, res) {
   Links.reset().fetch().then(function(links) {
     res.send(200, links.models);
   })
 });
-
+//routes post/links to check if link is valid, if is, tries to fetch bb model, sends if found, if not, creates and saves to db and adds to bb collection, then sends.
 app.post('/links', function(req, res) {
   var uri = req.body.url;
 
@@ -77,7 +79,7 @@ app.post('/links', function(req, res) {
 // assume the route is a short code and try and handle it here.
 // If the short-code doesn't exist, send the user to '/'
 /************************************************************/
-
+//routes get/* (wildcard) if not valid, send to index ejs view, else looks in db with knex queries, updates db visits count, returns concordant redirect.
 app.get('/*', function(req, res) {
   new Link({ code: req.params[0] }).fetch().then(function(link) {
     if (!link) {

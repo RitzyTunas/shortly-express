@@ -1,3 +1,5 @@
+/* global require, __dirname */
+
 var Bookshelf = require('bookshelf');
 var path = require('path');
 
@@ -47,3 +49,5 @@ db.knex.schema.hasTable('clicks').then(function(exists) {
 
 
 module.exports = db;
+
+

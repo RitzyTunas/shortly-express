@@ -1,0 +1,61 @@
+map
+/////////////////////////////////////////////////////////////////
+App contains Collections, which contains links.js and users.js, both reference db config file and models.
+
+Ex.
+var db = require('../config');
+var User = require('../models/user');
+
+var Users = new db.Collection();
+
+Users.model = User;
+
+module.exports = Users;
+
+////////////////////////////////////////////////////////////////
+App also contains Models, which has 3 subfiles, click.js, link.js, and user.js which create backbone?esque models for those three elements that map to the database outlined in  config.js.
+
+Ex.
+var db = require('../config');
+var bcrypt = require('bcrypt-nodejs');
+var Promise = require('bluebird');
+
+var User = db.Model.extend({
+});
+
+module.exports = User;
+///////////////////////////////////////////////////////////////////////
+App also contains config.js which creates/initializes the database schema using bookshelf.
+Defines two tables, urls and clicks, which insert new instances of these categories into the database, and init function to establish database.
+???includes note to add your own tables.
+
+Ex.
+db.knex.schema.hasTable('urls').then(function(exists) {
+  if (!exists) {
+    db.knex.schema.createTable('urls', function (link) {
+      link.increments('id').primary();
+      link.string('url', 255);
+      link.string('base_url', 255);
+      link.string('code', 100);
+      link.string('title', 255);
+      link.integer('visits');
+      link.timestamps();
+    }).then(function (table) {
+      console.log('Created Table', table);
+    });
+  }
+});
+/////////////////////////////////////////////////////////////////////////////
+Lib contains utility, which seems to be a catch-all for utility functions, has one already, getUrlTitle, ??? note to write more.
+Probs write checkUser function here.
+/////////////////////////////////////////////////////////////////////////////////
+Public contains client, which has all the front-end stuff, looks to be all backbone.
+App is the overarching app view, createLinkView is a view for making a new link, link is a model, links is a collection based on that model, link and links view correspond accordingly.
+Not sure about router, RESEARCH.
+//////////////////////////////////////////////////////////////////////////////////
+Public also contains lib, which is just dependencies.
+////////////////////////////////////////////////////////////////////////////////
+Views contains a bunch of .ejs files, which take data and templates and combine them.
+//////////////////////////////////////////////////////////////////////////////
+shortly.js fires the whole app up, routes links. Includes note to write auth and deal with wildcards. ???
+
