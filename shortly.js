@@ -19,7 +19,21 @@ app.configure(function() {
   app.use(partials());
   app.use(express.bodyParser());
   app.use(express.static(__dirname + '/public'));
+  /* ===== adding cookie parser experimentally. ==================================== */
+  app.use(express.cookieParser('shhhh, very secret'));
+  app.use(express.session());
 });
+
+/* ===== check if user is logged in ================================================ */
+function restrict(req, res, next) {
+  if (req.session.user) {
+    next();
+  } else {
+    req.session.error = 'Access denied!';
+    res.redirect('/login');
+  }
+}
+
 //routes get/ to ejs index
 app.get('/', function(req, res) {
   res.render('index');
@@ -27,6 +41,36 @@ app.get('/', function(req, res) {
 //routes get/create to ejs index
 app.get('/create', function(req, res) {
   res.render('index');
+});
+//redirect to index after signing up
+app.post('/signup', function(req, res) {
+  res.redirect('/index');
+});
+
+//routes get to ejs login
+app.get('/login', function(req, res) {
+  res.render('login');
+});
+
+//routes post to ejs login
+app.post('/login', function(req, res) {
+  var username = req.body.username;
+  var password = req.body.password;
+//console.log(username, password);
+  if(username == 'demo' && password == 'demo'){
+      req.session.regenerate(function(){
+      req.session.user = username;
+      res.redirect('/index');
+      });
+  }
+  else {
+     res.redirect('login');
+  }
+});
+
+//routes get to ejs signup
+app.get('/signup', function(req, res) {
+  res.render('signup');
 });
 //routes get/links to backbone links collection, which fetches all the links, then with promise sends resulting models as response. Research reset.
 app.get('/links', function(req, res) {
