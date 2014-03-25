@@ -44,6 +44,12 @@ app.get('/create', function(req, res) {
 });
 //redirect to index after signing up
 app.post('/signup', function(req, res) {
+  var username = req.body.username;
+  var password = req.body.password;
+  console.log('USERNAME!!!!!!!!!!!!!!!!!!!!!!!!', username, password);
+  Users.create({username: username, password: password}).then(function(user) {
+    console.log('WAAAAAAAAAAAAAAAAAAHHHHHHHHH:', user);
+  });
   res.redirect('/index');
 });
 
