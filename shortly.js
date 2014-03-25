@@ -38,7 +38,13 @@ app.configure(function() {
 
 //routes get/ to ejs index
 app.get('/', function(req, res) {
-  res.render('index');
+  if (req.session.user) {
+    res.render('index');
+  } else {
+    req.session.error = 'Access denied!';
+    res.redirect('/login');
+    console.log('THOU SHALL NOT PASS!!!!');
+  }
 });
 //routes get/create to ejs index
 app.get('/create', function(req, res) {
@@ -55,7 +61,11 @@ app.post('/signup', function(req, res) {
 
 //routes get to ejs login
 app.get('/login', function(req, res) {
-  res.render('login');
+  if (req.session.user) {
+    res.redirect('/index');
+  } else {
+    res.render('login');
+  }
 });
 
 //routes post to ejs login
