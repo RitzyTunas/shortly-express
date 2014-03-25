@@ -25,14 +25,16 @@ app.configure(function() {
 });
 
 /* ===== check if user is logged in ================================================ */
-function restrict(req, res, next) {
-  if (req.session.user) {
-    next();
-  } else {
-    req.session.error = 'Access denied!';
-    res.redirect('/login');
-  }
-}
+// function restrict(req, res, next) {
+//   if (req.session.user) {
+//     console.log('THIS IS CALLEDDDD!!!');
+//     next();
+//   } else {
+//     req.session.error = 'Access denied!';
+//     res.redirect('/login');
+//     console.log('here');
+//   }
+// }
 
 //routes get/ to ejs index
 app.get('/', function(req, res) {
@@ -46,9 +48,7 @@ app.get('/create', function(req, res) {
 app.post('/signup', function(req, res) {
   var username = req.body.username;
   var password = req.body.password;
-  console.log('USERNAME!!!!!!!!!!!!!!!!!!!!!!!!', username, password);
   Users.create({username: username, password: password}).then(function(user) {
-    console.log('WAAAAAAAAAAAAAAAAAAHHHHHHHHH:', user);
   });
   res.redirect('/index');
 });
@@ -62,16 +62,30 @@ app.get('/login', function(req, res) {
 app.post('/login', function(req, res) {
   var username = req.body.username;
   var password = req.body.password;
-//console.log(username, password);
-  if(username == 'demo' && password == 'demo'){
-      req.session.regenerate(function(){
-      req.session.user = username;
-      res.redirect('/index');
-      });
-  }
-  else {
-     res.redirect('login');
-  }
+  //check if matches database;
+  Users.query(function(checkLogin) {
+    checkLogin.where('username', '=', username).andWhere('password', '=', password);
+  })
+    .fetch().then(function(user) {
+      console.log(user);
+      if (user.length === 0) {
+        res.redirect('/signup');
+      } else {
+        req.session.regenerate(function(){
+          req.session.user = username;
+          res.redirect('/index');
+        });
+      }
+    });
+  // if(username == 'pleaasseeee' && password == 'work'){
+  //     req.session.regenerate(function(){
+  //     req.session.user = username;
+  //     res.redirect('/index');
+  //     });
+  // }
+  // else {
+  //    res.redirect('login');
+  // }
 });
 
 //routes get to ejs signup
