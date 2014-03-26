@@ -5,6 +5,7 @@ var util = require('./lib/utility');
 var partials = require('express-partials');
 
 var db = require('./app/config');
+var bcrypt = require('bcrypt-nodejs');
 var Users = require('./app/collections/users');
 var User = require('./app/models/user');
 var Links = require('./app/collections/links');
@@ -87,17 +88,25 @@ app.post('/login', function(req, res) {
   var username = req.body.username;
   var password = req.body.password;
   //check if matches database;
+
+
+
   Users.query(function(checkLogin) {
-    checkLogin.where('username', '=', username).andWhere('password', '=', password);
-  })
-    .fetch().then(function(user) {
-      console.log(user);
+    checkLogin.where('username', '=', username);
+  }).fetch().then(function(user) {
       if (user.length === 0) {
         res.redirect('/login');
       } else {
-        req.session.regenerate(function(){
-          req.session.user = username;
-          res.redirect('/index');
+        var hash = user.models[0].attributes.password;
+        bcrypt.compare(password, hash, function(err,response) {
+          if (response) {
+            req.session.regenerate(function(){
+              req.session.user = username;
+              res.redirect('/index');
+            });
+          } else {
+            res.redirect('/login');
+          }
         });
       }
     });
