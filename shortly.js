@@ -19,22 +19,12 @@ app.configure(function() {
   app.use(partials());
   app.use(express.bodyParser());
   app.use(express.static(__dirname + '/public'));
-  /* ===== adding cookie parser experimentally. ==================================== */
+//creating session
   app.use(express.cookieParser('shhhh, very secret'));
   app.use(express.session());
 });
 
-/* ===== check if user is logged in ================================================ */
-// function restrict(req, res, next) {
-//   if (req.session.user) {
-//     console.log('THIS IS CALLEDDDD!!!');
-//     next();
-//   } else {
-//     req.session.error = 'Access denied!';
-//     res.redirect('/login');
-//     console.log('here');
-//   }
-// }
+/*** index ****************************************************/
 
 //routes get/ to ejs index
 app.get('/', function(req, res) {
@@ -43,21 +33,45 @@ app.get('/', function(req, res) {
   } else {
     req.session.error = 'Access denied!';
     res.redirect('/login');
-    console.log('THOU SHALL NOT PASS!!!!');
   }
 });
+
 //routes get/create to ejs index
 app.get('/create', function(req, res) {
   res.render('index');
 });
+
+/*** signup ***************************************************/
+
+//routes get to ejs signup
+app.get('/signup', function(req, res) {
+  res.render('signup');
+});
+
 //redirect to index after signing up
 app.post('/signup', function(req, res) {
   var username = req.body.username;
   var password = req.body.password;
-  Users.create({username: username, password: password}).then(function(user) {
-  });
-  res.redirect('/index');
+//check if username is already taken
+  Users.query(function(checkLogin) {
+      checkLogin.where('username', '=', username);
+    }).fetch().then(function(user) {
+        if (user.length > 0) {
+          console.log('Username is already taken!');
+          res.redirect('/signup');
+        } else {
+          user = new User({username: username});
+          user.hashPassword(password);
+          Users.add(user);
+          req.session.regenerate(function(){
+                  req.session.user = username;
+                  res.redirect('/index');
+                });
+        }
+      });
 });
+
+/*** login ****************************************************/
 
 //routes get to ejs login
 app.get('/login', function(req, res) {
@@ -79,7 +93,7 @@ app.post('/login', function(req, res) {
     .fetch().then(function(user) {
       console.log(user);
       if (user.length === 0) {
-        res.redirect('/signup');
+        res.redirect('/login');
       } else {
         req.session.regenerate(function(){
           req.session.user = username;
@@ -87,27 +101,22 @@ app.post('/login', function(req, res) {
         });
       }
     });
-  // if(username == 'pleaasseeee' && password == 'work'){
-  //     req.session.regenerate(function(){
-  //     req.session.user = username;
-  //     res.redirect('/index');
-  //     });
-  // }
-  // else {
-  //    res.redirect('login');
-  // }
 });
 
-//routes get to ejs signup
-app.get('/signup', function(req, res) {
-  res.render('signup');
-});
+/*** logout ***************************************************/
+// app.post('/logout', function(req, res) {
+//   req.session.destroy();
+//   res.redirect('/login');
+// }
+
 //routes get/links to backbone links collection, which fetches all the links, then with promise sends resulting models as response. Research reset.
+
 app.get('/links', function(req, res) {
   Links.reset().fetch().then(function(links) {
     res.send(200, links.models);
   })
 });
+
 //routes post/links to check if link is valid, if is, tries to fetch bb model, sends if found, if not, creates and saves to db and adds to bb collection, then sends.
 app.post('/links', function(req, res) {
   var uri = req.body.url;
@@ -143,17 +152,12 @@ app.post('/links', function(req, res) {
 });
 
 /************************************************************/
-// Write your authentication routes here
-/************************************************************/
-
-
-
-/************************************************************/
 // Handle the wildcard route last - if all other routes fail
 // assume the route is a short code and try and handle it here.
 // If the short-code doesn't exist, send the user to '/'
 /************************************************************/
 //routes get/* (wildcard) if not valid, send to index ejs view, else looks in db with knex queries, updates db visits count, returns concordant redirect.
+
 app.get('/*', function(req, res) {
   new Link({ code: req.params[0] }).fetch().then(function(link) {
     if (!link) {
